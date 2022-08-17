@@ -65,6 +65,14 @@ app.post("/urls", (req, res) => {
   res.redirect(302, `/urls/${shortURL}`);
 });
 
+// Add POST route to handle Delete functionality
+
+app.post("/urls/:id/delete", (req, res) => {
+  delete urlDatabase[req.params.id];
+  delete urlDatabase[req.body.longURL];
+  res.redirect(`/urls/`);
+});
+
 // Set server to listen
 
 app.listen(PORT, () => {
