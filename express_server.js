@@ -70,7 +70,16 @@ app.post("/urls", (req, res) => {
 app.post("/urls/:id/delete", (req, res) => {
   delete urlDatabase[req.params.id];
   delete urlDatabase[req.body.longURL];
-  res.redirect(`/urls/`);
+  res.redirect("/urls/");
+});
+
+// Add POST route to handle Edit functionality
+
+app.post("/urls/:id/edit", (req, res) => {
+  console.log(urlDatabase[req.params.id]);
+  console.log(req.body.updatedURL);
+  urlDatabase[req.params.id] = req.body.updatedURL;
+  res.redirect("/urls");
 });
 
 // Set server to listen
