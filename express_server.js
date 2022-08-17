@@ -20,6 +20,7 @@ const urlDatabase = {
 
 app.use(express.urlencoded({ extended: true }));
 
+
 // GET Routes
 
 app.get("/", (req, res) => {
@@ -44,16 +45,24 @@ app.get("/urls/new", (req, res) => {
   res.render("urls_new");
 });
 
+
 app.get("/urls/:id", (req, res) => {
   const templateVars = { id: req.params.id, longURL: urlDatabase[req.params.id] };
   res.render("urls_show", templateVars);
 });
 
+app.get("/u/:id", (req, res) => {
+  const longURL = urlDatabase[req.params.id];
+  res.redirect(longURL);
+});
+
 // POST Routes
 
+// Generate random shortURL and redirect to show results
 app.post("/urls", (req, res) => {
-  console.log(req.body);
-  res.send("Ok");
+  const shortURL = generateRandomString();
+  urlDatabase[shortURL] = req.body.longURL;
+  res.redirect(302, `/urls/${shortURL}`);
 });
 
 // Set server to listen
