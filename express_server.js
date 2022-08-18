@@ -5,9 +5,11 @@ const generateRandomString = () => {
   return result;
 };
 
+
 // Setting required functions and port variables
 
 const express = require("express");
+const cookieParser = require("cookie-parser");
 const app = express();
 const PORT = 8080;
 
@@ -19,6 +21,8 @@ const urlDatabase = {
 };
 
 app.use(express.urlencoded({ extended: true }));
+
+app.use(cookieParser());
 
 
 // GET Routes
@@ -37,17 +41,18 @@ app.get("/hello", (req, res) => {
 
 
 app.get("/urls", (req, res) => {
-  const templateVars = { urls: urlDatabase };
+  const templateVars = { urls: urlDatabase, username: req.cookies["username"] };
   res.render("urls_index", templateVars);
 });
 
 app.get("/urls/new", (req, res) => {
-  res.render("urls_new");
+  const templateVars = { urls: urlDatabase, username: req.cookies["username"] };
+  res.render("urls_new", templateVars);
 });
 
 
 app.get("/urls/:id", (req, res) => {
-  const templateVars = { id: req.params.id, longURL: urlDatabase[req.params.id] };
+  const templateVars = { id: req.params.id, longURL: urlDatabase[req.params.id], username: req.cookies["username"] };
   res.render("urls_show", templateVars);
 });
 
@@ -76,11 +81,25 @@ app.post("/urls/:id/delete", (req, res) => {
 // Add POST route to handle Edit functionality
 
 app.post("/urls/:id/edit", (req, res) => {
-  console.log(urlDatabase[req.params.id]);
-  console.log(req.body.updatedURL);
   urlDatabase[req.params.id] = req.body.updatedURL;
   res.redirect("/urls");
 });
+
+
+// Add POST route for cookie handling
+
+app.post("/login", (req, res) => {
+  res.cookie("username", req.body.username);
+  res.redirect("/urls");
+});
+
+// Add POST route to handling Logging out
+
+app.post("/logout", (req, res) => {
+  res.clearCookie("username");
+  res.redirect("/urls");
+});
+
 
 // Set server to listen
 
