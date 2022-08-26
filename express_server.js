@@ -31,17 +31,13 @@ const urlsForUser = (userIdent) => {
 
 // Setting required functions and port variables
 const express = require("express");
+const bcrypt = require("bcryptjs");
 const cookieParser = require("cookie-parser");
 const app = express();
 const PORT = 8080;
 
 app.set("view engine", "ejs");
 
-// Original DB
-// const urlDatabase = {
-//   "b2xVn2": "http://www.lighthouselabs.ca",
-//   "9sm5xK": "http://www.google.com"
-// };
 
 const urlDatabase = {
   b6UTxQ: {
@@ -100,12 +96,11 @@ app.get("/urls", (req, res) => {
 
 
 app.get("/urls/new", (req, res) => {
-  const usersUrls = urlsForUser(users[req.cookies.user_id]);
-  const templateVars = { urls: usersUrls, user: users[req.cookies.user_id] };
-
   if (!users[req.cookies.user_id]) {
     res.redirect("/login");
   } else {
+    const usersUrls = urlsForUser(users[req.cookies.user_id]);
+    const templateVars = { urls: usersUrls, user: users[req.cookies.user_id] };
     res.render("urls_new", templateVars);
   }
 });
@@ -212,13 +207,12 @@ app.post("/login", (req, res) => {
     res.status(400).send("Please enter e-mail and password.");
   } else if (!userLogin) {
     res.status(403).send("E-mail not found.");
-  } else if (req.body.password !== userLogin.password) {
-    res.status(403).send("Incorrect password.");
-  } else {
+  } else if (bcrypt.compareSync(req.body.password, userLogin.password)) {
     res.cookie("user_id", userLogin.id);
     res.redirect("/urls");
+  } else {
+    res.status(403).send("Incorrect password.");
   }
-
 });
 
 // Add POST route to handling Logging out
@@ -233,12 +227,14 @@ app.post("/register", (req, res) => {
   if (!req.body.email.length) {
     res.status(400).send("Error 400. Please enter e-mail");
   } else if (getUserByEmail(req.body.email)) {
-    
     res.status(400).send("E-mail already in use!");
   } else {
-  
     const userId = generateRandomString();
-    users[userId] = {id: userId, email: req.body.email,   password: req.body.password};
+    users[userId] = {
+      id: userId,
+      email: req.body.email,
+      password: bcrypt.hashSync(req.body.password, 10)
+    };
     res.cookie("user_id", userId);
     res.redirect("/urls");
   }
